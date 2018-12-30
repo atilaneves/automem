@@ -3,7 +3,7 @@
  */
 module automem.ref_counted;
 
-import automem.traits: isAllocator;
+import automem.traits: isAllocator, classHasMonitorPointer, classHasMemberWithPointer;
 import automem.unique: Unique;
 import stdx.allocator: theAllocator, processAllocator;
 import std.typecons: Flag;
@@ -208,12 +208,12 @@ private:
             // []    interfaces
             // T...  members
             import core.memory: GC;
-            if (supportGC && !(typeid(Type).m_flags & TypeInfo_Class.ClassFlags.noPointers))
+            static if (supportGC && classHasMemberWithPointer!Type)
                 // members have pointers: we have to watch the monitor
                 // and all members; skip the classInfoPtr
                 GC.addRange(&_impl._rawMemory[(void*).sizeof],
                         __traits(classInstanceSize, Type) - (void*).sizeof);
-            else
+            else static if (classHasMonitorPointer!Type)
                 // representation doesn't have pointers, just watch the
                 // monitor pointer; skip the classInfoPtr
                 // need to watch the monitor pointer even if supportGC is false.
@@ -237,8 +237,10 @@ private:
         if(_impl._count == 0) {
             () @trusted { destruct(_impl._get); }();
             static if (is(Type == class)) {
-                // need to watch the monitor pointer even if supportGC is false.
-                () @trusted { GC.removeRange(&_impl._rawMemory[(void*).sizeof]); }();
+                static if (classHasMonitorPointer!Type || (supportGC && classHasMemberWithPointer!Type)) {
+                    // need to watch the monitor pointer even if supportGC is false.
+                    () @trusted { GC.removeRange(&_impl._rawMemory[(void*).sizeof]); }();
+                }
             } else static if (supportGC && hasIndirections!Type) {
                 () @trusted { GC.removeRange(cast(void*) &_impl._object); }();
             }

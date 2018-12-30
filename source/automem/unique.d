@@ -3,7 +3,7 @@
  */
 module automem.unique;
 
-import automem.traits: isAllocator;
+import automem.traits: isAllocator, classHasMonitorPointer, classHasMemberWithPointer;
 import stdx.allocator: theAllocator;
 import std.typecons: Flag;
 
@@ -163,11 +163,13 @@ private:
 
         if(_object !is null) () @trusted { _allocator.dispose(_object); }();
         static if (is(Type == class)) {
-            // need to watch the monitor pointer even if supportGC is false.
-            () @trusted {
-                auto repr = (cast(void*)_object)[0..__traits(classInstanceSize, Type)];
-                GC.removeRange(&repr[(void*).sizeof]);
-            }();
+            static if (classHasMonitorPointer!Type || (supportGC && classHasMemberWithPointer!Type)) {
+                // need to watch the monitor pointer even if supportGC is false.
+                () @trusted {
+                    auto repr = (cast(void*)_object)[0..__traits(classInstanceSize, Type)];
+                    GC.removeRange(&repr[(void*).sizeof]);
+                }();
+            }
         } else static if (supportGC && hasIndirections!Type) {
             () @trusted {
                 GC.removeRange(_object);
@@ -199,10 +201,10 @@ private template makeObject(Flag!"supportGC" supportGC, args...)
         static if (is(Type == class)) {
             () @trusted {
                 auto repr = (cast(void*)u._object)[0..__traits(classInstanceSize, Type)];
-                if (supportGC && !(typeid(Type).m_flags & TypeInfo_Class.ClassFlags.noPointers)) {
+                static if (supportGC && classHasMemberWithPointer!Type) {
                     GC.addRange(&repr[(void*).sizeof],
                             __traits(classInstanceSize, Type) - (void*).sizeof);
-                } else {
+                } else static if (classHasMonitorPointer!Type) {
                     // need to watch the monitor pointer even if supportGC is false.
                     GC.addRange(&repr[(void*).sizeof], (void*).sizeof);
                 }

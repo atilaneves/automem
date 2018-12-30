@@ -43,3 +43,25 @@ template isTheAllocator(Allocator) {
     import stdx.allocator: theAllocator;
     enum isTheAllocator = is(Allocator == typeof(theAllocator));
 }
+
+template classHasMonitorPointer(C) if (is(C == class))
+{
+    static if (__VERSION__ >= 2081) // https://dlang.org/changelog/2.081.0.html#getlinkage_for_classes
+    {
+        enum classHasMonitorPointer = __traits(getLinkage, C) == "D";
+    }
+    else
+    {
+        enum classHasMonitorPointer = is(immutable(C)* : immutable(Object)*);
+    }
+}
+
+template classHasMemberWithPointer(C) if (is(C == class))
+{
+    enum classHasMemberWithPointer =
+        () {
+            foreach (p; __traits(getPointerBitmap, C)[1 .. $])
+                if (p != 0) return true;
+            return false;
+        }();
+}
