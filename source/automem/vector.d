@@ -148,7 +148,16 @@ struct Vector(E, Allocator = typeof(theAllocator)) if(isAllocator!Allocator) {
 
     /// Pops the last element off
     void popBack() {
+        assert(length);
         --_length;
+        debug
+        {
+            // restore invariant
+            static if(isElementMutable)
+                _elements[_length.toSizeT] = E.init;
+            else
+                mutableElements[_length.toSizeT] = E.init;
+        }
     }
 
     /// If the vector is empty

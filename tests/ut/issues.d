@@ -73,3 +73,15 @@ else {
     auto rc = RefCounted!S();
     rc.front.shouldThrow!AssertError;
 }
+
+@("42")
+@system // unittest is system because Vector(T, M).opOpAssign is system
+unittest {
+    StringM str;
+    str ~= "a";
+    str.popBack;
+    str ~= "a"; // generates the error "Assigning to non default initialised non mutable member" in vector.d:297
+
+    assert(str.length == 1);
+    assert(str[0] == 'a');
+}
