@@ -39,6 +39,8 @@ struct Unique(
 
     static if(is(Type == class))
         alias Pointer = Type;
+    else static if(is(Type == interface))
+        static assert(0, "Interfaces is not supported by Unique. Use (abstract) base class");
     else
         alias Pointer = Type*;
 
@@ -174,6 +176,8 @@ private:
                 auto repr = (cast(void*)_object)[0..__traits(classInstanceSize, Type)];
                 GC.removeRange(&repr[(void*).sizeof]);
             }();
+        } else static if (is(Type == interface)) {
+            static assert(0, "Interfaces is not supported by Unique. Use (abstract) base class");
         } else static if (supportGC && hasIndirections!Type) {
             () @trusted {
                 GC.removeRange(_object);
@@ -249,6 +253,8 @@ private template makeObject(Flag!"supportGC" supportGC, args...)
                     GC.addRange(&repr[(void*).sizeof], (void*).sizeof);
                 }
             }();
+        } else static if (is(Type == interface)) {
+            static assert(0, "Interfaces is not supported by Unique. Use (abstract) base class");
         } else static if (supportGC && hasIndirections!Type) {
             () @trusted {
                 GC.addRange(u._object, Type.sizeof);
