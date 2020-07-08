@@ -2,10 +2,15 @@ module ut.unique;
 
 
 import ut;
+import ut.utils;
 import automem.unique;
 
 
-mixin TestUtils;
+
+@Shutdown
+void after() {
+    reset;
+}
 
 
 ///
