@@ -2,7 +2,6 @@ module ut.unique;
 
 
 import ut;
-import ut.utils;
 import automem.unique;
 
 
