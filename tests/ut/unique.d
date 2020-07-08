@@ -87,7 +87,7 @@ mixin TestUtils;
     auto allocator = TestAllocator();
     auto oldPtr = Unique!(Struct, TestAllocator*)(&allocator, 5);
     Unique!(Struct, TestAllocator*) newPtr = oldPtr.move;
-    oldPtr.shouldBeNull;
+    oldPtr.borrow.shouldBeNull;
     newPtr.twice.shouldEqual(10);
     Struct.numStructs.shouldEqual(1);
 }
@@ -142,7 +142,7 @@ mixin TestUtils;
     auto oldPtr = Unique!(Struct, TestAllocator*)(&allocator, 5);
     auto newPtr = oldPtr.unique;
     newPtr.twice.shouldEqual(10);
-    oldPtr.shouldBeNull;
+    oldPtr.borrow.shouldBeNull;
 }
 
 @("@nogc")
@@ -203,7 +203,7 @@ mixin TestUtils;
             Struct.numStructs.shouldEqual(2);
             ptr1 = ptr2.move;
             Struct.numStructs.shouldEqual(1);
-            ptr2.shouldBeNull;
+            ptr2.borrow.shouldBeNull;
             ptr1.twice.shouldEqual(20);
         }
 
