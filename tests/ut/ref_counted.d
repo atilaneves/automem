@@ -1,9 +1,16 @@
 module ut.ref_counted;
 
+
 import ut;
 import automem.ref_counted;
 
-mixin TestUtils;
+
+@Shutdown
+void after() {
+    reset;
+}
+
+//mixin TestUtils;
 
 ///
 @("struct test allocator no copies")

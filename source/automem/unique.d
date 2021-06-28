@@ -7,10 +7,6 @@ import automem.traits: isAllocator;
 import std.experimental.allocator: theAllocator;
 import std.typecons: Flag;
 
-version(AutomemTesting) {
-    import ut;
-    mixin TestUtils;
-}
 
 version (D_BetterC)
     enum gcExists = false;
@@ -120,13 +116,6 @@ struct Unique(
         return u;
     }
 
-    /// release ownership
-    package Pointer release() {
-        auto ret = _object;
-        _object = null;
-        return ret;
-    }
-
     ///
     package Allocator allocator() {
         return _allocator;
@@ -203,28 +192,6 @@ private:
     static assert(is(typeof(s) == Unique!S));
     assert(s._object !is null);
     assert(s.zeroArgsCtorTest == 3);
-}
-
-
-///
-@("release")
-@system unittest {
-    import std.experimental.allocator: dispose;
-    import core.exception: AssertError;
-
-    try {
-        auto allocator = TestAllocator();
-        auto ptr = Unique!(Struct, TestAllocator*)(&allocator, 42);
-        ptr.release;
-        assert(Struct.numStructs == 1);
-    } catch(AssertError e) { // TestAllocator should throw due to memory leak
-        version(unitThreadedLight) {}
-        else
-            "Memory leak in TestAllocator".should.be in e.msg;
-        return;
-    }
-
-    assert(0); // should throw above
 }
 
 
