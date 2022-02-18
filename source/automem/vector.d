@@ -479,7 +479,6 @@ private:
 
     E[] createVector(long length) scope {
         import std.experimental.allocator: makeArray;
-        // theAllocator.makeArray is @system
         return () @trusted { return _allocator.makeArray!E(length.toSizeT); }();
     }
 
