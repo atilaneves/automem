@@ -643,3 +643,77 @@ else {
     (vec == 4.iota).should == false;
     (vec == only(0)).should == false;
 }
+
+
+@("static_vector")
+unittest {
+    import std.range: iota;
+    import std.experimental.allocator.building_blocks : InSituRegion;
+    import std.datetime.stopwatch: StopWatch, AutoStart;
+    import std.datetime : Duration;
+
+    auto test(T)(ref T vector) {
+
+        auto sw = StopWatch(AutoStart.yes);
+        foreach(i; 0 .. 1000)
+            vector ~= i;
+        return cast(Duration) sw.peek;
+    }
+
+    foreach(i; 0 .. 10) {
+        auto allocator = InSituRegion!(1024 * int.sizeof * 4)();
+        auto v = vector(&allocator, 10.iota);
+        auto s = staticVector(10.iota);
+        writelnUt("v: ", test(v));
+        writelnUt("s: ", test(s));
+    }
+}
+
+
+private struct StaticVector(E, size_t N = 1024) {
+
+    static if(N <= ubyte.max)
+        alias L = ubyte;
+    else static if(N <= ushort.max)
+        alias L = ushort;
+    else static if(N <= uint.max)
+        alias L = uint;
+    else
+        alias L = size_t;
+
+    private E[N] _elements;
+    L _length = 0;
+
+    this(R)(R elements) {
+        foreach(elt; elements) {
+            this ~= elt;
+        }
+    }
+
+    this(E[] elements) {
+        _length = cast(L) elements.length;
+        _elements[0 .. _length] = elements[];
+    }
+
+    auto length() const {
+        return _length;
+    }
+
+    void opOpAssign(string op)(E other) if(op == "~") {
+        _elements[_length++] = other;
+    }
+
+    auto opSlice() inout {
+        return _elements[0 .. _length];
+    }
+}
+
+private auto staticVector(E)(E[] elements...) {
+    return StaticVector!E(elements);
+}
+
+import std.range: isInputRange;
+private auto staticVector(R)(R elements) if(isInputRange!R) {
+    import std.range: ElementType;
+    return StaticVector!(ElementType!R)(elements);
+}
