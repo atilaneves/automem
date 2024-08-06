@@ -36,4 +36,4 @@ jobs:
       - name: Build binary
         run: dub build -q
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
