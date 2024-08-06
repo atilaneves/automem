@@ -537,12 +537,17 @@ static if (__VERSION__ >= 2082) { // version identifier D_Exceptions was added i
 
 
 static if (haveExceptions) {
-    private static immutable boundsException = new BoundsException("Out of bounds index");
+    private static BoundsException boundsException;
     private enum throwBoundsException = q{throw boundsException;};
     class BoundsException: Exception {
         import std.exception: basicExceptionCtors;
 
         mixin basicExceptionCtors;
+    }
+
+    static this()
+    {
+        boundsException = new BoundsException("Out of bounds index");
     }
 } else {
     private enum throwBoundsException = q{assert(0, "Out of bounds index");};
