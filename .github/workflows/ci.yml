@@ -9,12 +9,16 @@ jobs:
         os:
           - ubuntu-24.04
           - windows-2022
-          #- macos-13
+          - macos-14
         dc:
           - dmd-2.111.0
           - dmd-2.100.0
           - ldc-1.41.0
           - ldc-1.28.0
+
+        exclude:
+          - dc: dmd-2.100.0
+            os: macos-14
 
     runs-on: ${{ matrix.os }}
     steps:
