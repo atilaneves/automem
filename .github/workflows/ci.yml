@@ -14,11 +14,12 @@ jobs:
           - dmd-2.112.0
           - dmd-2.100.0
           - ldc-1.42.0
-          - ldc-1.28.0
 
         exclude:
-          - dc: dmd-2.100.0
-            os: macos-14
+          - os: macos-14
+            dc: dmd-2.112.0
+          - os: macos-14
+            dc: dmd-2.100.0
 
     runs-on: ${{ matrix.os }}
     steps:
