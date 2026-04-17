@@ -11,21 +11,22 @@ jobs:
           - windows-2022
           - macos-14
         dc:
-          - dmd-2.111.0
+          - dmd-2.112.0
           - dmd-2.100.0
-          - ldc-1.41.0
-          - ldc-1.28.0
+          - ldc-1.42.0
 
         exclude:
-          - dc: dmd-2.100.0
-            os: macos-14
+          - os: macos-14
+            dc: dmd-2.112.0
+          - os: macos-14
+            dc: dmd-2.100.0
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
       - name: Install D compiler
-        uses: dlang-community/setup-dlang@v2
+        uses: dlang-community/setup-dlang@v2.0.0
         with:
           compiler: ${{ matrix.dc }}
 
@@ -40,4 +41,4 @@ jobs:
       - name: Build binary
         run: dub build -q
 
-      - uses: codecov/codecov-action@v5.1.2
+      - uses: codecov/codecov-action@v5.5.2
